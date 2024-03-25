@@ -1,0 +1,22 @@
+﻿version: '3.0'
+
+services:
+  access_management_service:
+    container_name: 'access_management_service'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    networks:
+      - "access_management_service_network"
+    volumes:
+      - "access_management_service_volume:/tmp/access_management_service/logs"
+
+volumes:
+  access_management_service_volume:
+
+networks:
+  access_management_service_network:
+    driver: 'bridge'
