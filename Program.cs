@@ -1,7 +1,19 @@
+using AccessManagementService.Service.AccessManagement;
+using AccessManagementService.Service.UserFacade;
+using AccessManagementService.Service.UserFacade.Impl;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add controllers
 builder.Services.AddControllers();
+
+// Add services
+builder.Services
+    .AddSingleton<IUserServiceFacade,
+        UserServiceFacade>();
+builder.Services
+    .AddSingleton<IAccessManagementService,
+        AccessManagementService.Service.AccessManagement.Impl.AccessManagementService>();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -19,10 +31,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// var summaries = new[]
+// {
+//     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+// };
 
 app.MapControllers();
 
@@ -43,7 +55,7 @@ app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+// record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+// {
+//     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+// }

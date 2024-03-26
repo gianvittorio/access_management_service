@@ -1,11 +1,11 @@
-namespace AccessManagementService.Service.AccessManagement.Model;
+namespace AccessManagementService.Service.UserFacade.Dtos;
 
 public enum AccessType
 {
     Dtc, Employer
 }
 
-public class User
+public class UserRequestDto
 {
     public string Email { get; set; } = null!;
     public string Password { get; set; } = null!;

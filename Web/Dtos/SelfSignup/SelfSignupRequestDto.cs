@@ -6,9 +6,13 @@ public class SelfSignupRequestDto
 {
     [JsonPropertyName("email")]
     [JsonRequired]
-    public string Email { get; set; }
-    
+    public string Email { get; set; } = null!;
+
     [JsonPropertyName("password")]
     [JsonRequired]
-    public string Password { get; set; }
+    public string Password { get; set; } = null!;
+
+    [JsonPropertyName("country")]
+    [JsonRequired]
+    public string Country { get; set; } = null!;
 }

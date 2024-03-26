@@ -4,11 +4,7 @@ namespace AccessManagementService.Service.AccessManagement;
 
 public interface IAccessManagementService
 {
-    Task<User> FindUserByEmail(string email);
+    Task<SelfSignupResult> SelfSignUp(string userEmail, string password, string country);
 
-    Task<User> CreateUser(User newUser);
-
-    Task<User> UpdateUser(string userId, User persistedUser);
-
-    Task<bool> RemoveUser(string userId);
+    Task<FileProcessingResult> DownloadAndProcessEligibilityFile(string fileUrl, string employerName);
 }
