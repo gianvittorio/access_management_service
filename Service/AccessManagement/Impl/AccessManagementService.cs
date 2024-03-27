@@ -1,3 +1,4 @@
+using AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
 using AccessManagementService.Persistence.Repository;
 using AccessManagementService.Service.AccessManagement.Model;
 using AccessManagementService.Service.EmployerFacade;
@@ -107,6 +108,6 @@ public class AccessManagementService : IAccessManagementService
 
     private bool IsPasswordValid(string password)
     {
-        return true;
+        return new PasswordValidator().Validate(password);
     }
 }

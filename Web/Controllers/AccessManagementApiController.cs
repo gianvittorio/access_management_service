@@ -8,14 +8,9 @@ namespace AccessManagementService.Web.Controllers;
 
 [ApiController]
 [Route("/api/access_management/v1")]
-public class AccessManagementApiController : Controller
+public class AccessManagementApiController(IAccessManagementService accessManagementService) : Controller
 {
-    private readonly IAccessManagementService _accessManagementService;
-
-    public AccessManagementApiController(IAccessManagementService accessManagementService)
-    {
-        _accessManagementService = accessManagementService;
-    }
+    private readonly IAccessManagementService _accessManagementService = accessManagementService;
 
     [HttpPost("pub/self_signup")]
     public async Task<ActionResult> SelfSignup(SelfSignupRequestDto selfSignupRequestDto)
