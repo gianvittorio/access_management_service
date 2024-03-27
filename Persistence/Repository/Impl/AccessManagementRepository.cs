@@ -7,7 +7,7 @@ public class AccessManagementRepository : IAccessManagementRepository
 {
     private static readonly Fixture AutoFixture = new();
     
-    public Task SaveEligibilityEntity(EligibilityMetadataEntity eligibilityMetadataEntity)
+    public Task SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity)
     {
         return Task.CompletedTask;
     }

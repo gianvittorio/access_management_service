@@ -4,7 +4,7 @@ namespace AccessManagementService.Persistence.Repository;
 
 public interface IAccessManagementRepository
 {
-    Task SaveEligibilityEntity(EligibilityMetadataEntity eligibilityMetadataEntity);
+    Task SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity);
     
     Task<EligibilityMetadataEntity> FindEligibilityMetadataEntityByEmployerName(string employerName);
 }

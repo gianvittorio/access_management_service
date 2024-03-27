@@ -5,8 +5,8 @@ namespace AccessManagementService.Web.Dtos.EmployerSignup;
 public class EmployerSignupResponseDto
 {
     [JsonPropertyName("processed_lines")]
-    public IList<long> ProcessedLines { get; set; } = new List<long>();
+    public IList<string> ProcessedLines { get; set; } = new List<string>();
 
     [JsonPropertyName("skipped_lines")]
-    public IList<long> SkippedLines { get; set; } = new List<long>();
+    public IList<string> SkippedLines { get; set; } = new List<string>();
 }

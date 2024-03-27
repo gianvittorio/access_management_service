@@ -1,4 +1,5 @@
 using AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
+using AccessManagementService.Persistence.Entities;
 using AccessManagementService.Persistence.Repository;
 using AccessManagementService.Service.AccessManagement.Model;
 using AccessManagementService.Service.EmployerFacade;
@@ -26,7 +27,7 @@ public class AccessManagementService : IAccessManagementService
         _employerServiceFacade = employerServiceFacade;
     }
 
-    public async Task<SelfSignupResult> SelfSignUp(string userEmail, string password, string country, string employerName)
+    public async Task<SelfSignupResult> SelfSignUpAsync(string userEmail, string password, string country, string employerName)
     {
         if (string.IsNullOrWhiteSpace(userEmail) ||
             string.IsNullOrWhiteSpace(password) ||
@@ -44,7 +45,7 @@ public class AccessManagementService : IAccessManagementService
         if (!string.IsNullOrWhiteSpace(employerName))
         {
             var eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerName(employerName);
-            var fileProcessingResult = await DownloadAndProcessEligibilityFile(eligibilityMetadataForEmployerName.FileUrl, employerName);
+            var fileProcessingResult = await DownloadAndProcessEligibilityFileAsync(eligibilityMetadataForEmployerName.FileUrl, employerName);
             employeeUser = FindRegisteredUserByEmail(userEmail, fileProcessingResult);
         }
         
@@ -90,8 +91,25 @@ public class AccessManagementService : IAccessManagementService
         return selfSignupResult;
     }
 
-    public Task<FileProcessingResult> DownloadAndProcessEligibilityFile(string fileUrl, string employerName)
+    public async Task<FileProcessingResult> SaveEligibilityMetadataAsync(string fileUrl, string employerName)
     {
+        var fileProcessingResult = await DownloadAndProcessEligibilityFileAsync(fileUrl, employerName);
+        
+        var eligibilityMetadataEntity = new EligibilityMetadataEntity
+        {
+            FileUrl = fileUrl,
+            EmployerName = employerName
+        };
+        await _accessManagementRepository.SaveEligibilityMetadataEntityAsync(eligibilityMetadataEntity);
+
+        return fileProcessingResult;
+    }
+
+    public Task<FileProcessingResult> DownloadAndProcessEligibilityFileAsync(string fileUrl, string employerName)
+    {
+        // To do: Process line by line, updating each and and every user's country and salary, as well as terminating user's
+        // accounts no longer listed in eligibility file
+        
         var fileProcessingResult = AutoFixture.Build<FileProcessingResult>()
             .With(result => result.EmployerName, employerName)
             .Create();

@@ -13,12 +13,12 @@ public class AccessManagementApiController(IAccessManagementService accessManage
     private readonly IAccessManagementService _accessManagementService = accessManagementService;
 
     [HttpPost("pub/self_signup")]
-    public async Task<ActionResult> SelfSignup(SelfSignupRequestDto selfSignupRequestDto)
+    public async Task<ActionResult<SelfSignupResponseDto>> SelfSignup(SelfSignupRequestDto selfSignupRequestDto)
     {
         try
         {
             var selfSignUpResult = await 
-                _accessManagementService.SelfSignUp(selfSignupRequestDto.Email, selfSignupRequestDto.Password, selfSignupRequestDto.Country, selfSignupRequestDto.EmployerName);
+                _accessManagementService.SelfSignUpAsync(selfSignupRequestDto.Email, selfSignupRequestDto.Password, selfSignupRequestDto.Country, selfSignupRequestDto.EmployerName);
             var selfSignupResponseDto = new SelfSignupResponseDto
             {
                 UserId = selfSignUpResult.UserId,
@@ -38,8 +38,24 @@ public class AccessManagementApiController(IAccessManagementService accessManage
     }
     
     [HttpPost("pub/employer_signup")]
-    public ActionResult EmployerSignup(EmployerSignupRequestDto employerSignupRequestDto)
+    public async Task<ActionResult> EmployerSignup(EmployerSignupRequestDto employerSignupRequestDto)
     {
-        return Ok();
+        try
+        {
+            var fileProcessingResult =
+                await _accessManagementService.SaveEligibilityMetadataAsync(employerSignupRequestDto.FileUrl,
+                    employerSignupRequestDto.EmployerName);
+            var employerSignupResponseDto = new EmployerSignupResponseDto
+            {
+                ProcessedLines = fileProcessingResult.ProcessedLines,
+                SkippedLines = fileProcessingResult.SkippedLines
+            };
+
+            return Ok(employerSignupResponseDto);
+        }
+        catch (Exception exception)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, exception.Message);
+        }
     }
 }
