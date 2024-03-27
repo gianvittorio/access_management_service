@@ -13,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddSingleton<IAccessManagementRepository, AccessManagementRepository>();
 
+// Add HttpClient
+builder.Services
+    .AddHttpClient<IAccessManagementService,
+        AccessManagementService.Service.AccessManagement.Impl.AccessManagementService>();
+
 // Add services
 builder.Services
     .AddSingleton<IUserServiceFacade, UserServiceFacade>();

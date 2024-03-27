@@ -9,8 +9,14 @@
 
     <ItemGroup>
         <PackageReference Include="AutoFixture" Version="4.18.1" />
+        <PackageReference Include="CsvHelper" Version="31.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.3"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="eligibility_file.csv" />
+      <Resource Include="eligibility_file.csv" />
     </ItemGroup>
 
 </Project>

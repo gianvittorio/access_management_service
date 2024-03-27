@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Net;
+using AccessManagementService.Domain.Core.Lib.CsvFileProcessing.Impl;
 using AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
 using AccessManagementService.Persistence.Entities;
 using AccessManagementService.Persistence.Repository;
@@ -6,12 +9,15 @@ using AccessManagementService.Service.EmployerFacade;
 using AccessManagementService.Service.UserFacade;
 using AccessManagementService.Service.UserFacade.Dtos;
 using AutoFixture;
+using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace AccessManagementService.Service.AccessManagement.Impl;
 
 public class AccessManagementService : IAccessManagementService
 {
     private static readonly Fixture AutoFixture = new();
+    private HttpClient _httpClient;
     private readonly IUserServiceFacade _userServiceFacade;
     private readonly IEmployerServiceFacade _employerServiceFacade;
     private readonly IAccessManagementRepository _accessManagementRepository;
@@ -19,12 +25,14 @@ public class AccessManagementService : IAccessManagementService
     public AccessManagementService(
         IUserServiceFacade userServiceFacade, 
         IAccessManagementRepository accessManagementRepository, 
-        IEmployerServiceFacade employerServiceFacade
+        IEmployerServiceFacade employerServiceFacade, 
+        HttpClient httpClient
         )
     {
         _userServiceFacade = userServiceFacade;
         _accessManagementRepository = accessManagementRepository;
         _employerServiceFacade = employerServiceFacade;
+        _httpClient = httpClient;
     }
 
     public async Task<SelfSignupResult> SelfSignUpAsync(string userEmail, string password, string country, string employerName)
@@ -59,7 +67,7 @@ public class AccessManagementService : IAccessManagementService
                 Country = employeeUser.Country,
                 AccessType = UserAccessType.Employer,
                 FullName = employeeUser.FullName,
-                BirthDate = employeeUser.BirthDate,
+                BirthDate = DateTime.Parse(employeeUser.BirthDate, CultureInfo.InvariantCulture),
                 Salary = employeeUser.Salary,
                 EmployerId = await _employerServiceFacade.FindEmployerIdByEmployerName(employerName)
             };
@@ -105,16 +113,17 @@ public class AccessManagementService : IAccessManagementService
         return fileProcessingResult;
     }
 
-    public Task<FileProcessingResult> DownloadAndProcessEligibilityFileAsync(string fileUrl, string employerName)
+    public async Task<FileProcessingResult> DownloadAndProcessEligibilityFileAsync(string fileUrl, string employerName)
     {
         // To do: Process line by line, updating each and and every user's country and salary, as well as terminating user's
         // accounts no longer listed in eligibility file
-        
-        var fileProcessingResult = AutoFixture.Build<FileProcessingResult>()
-            .With(result => result.EmployerName, employerName)
-            .Create();
-        
-        return Task.FromResult(fileProcessingResult);
+        using var response = await _httpClient.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead);
+        await using var responseContentStream = await response.Content.ReadAsStreamAsync();
+        using var streamReader = new StreamReader(responseContentStream);
+        var eligibilityFileStreamProcessor = new EligibilityFileStreamProcessor(employerName);
+        var fileProcessingResult = await eligibilityFileStreamProcessor.Process(streamReader);
+
+        return fileProcessingResult;
     }
 
     private User? FindRegisteredUserByEmail(string email, FileProcessingResult fileProcessingResult)
