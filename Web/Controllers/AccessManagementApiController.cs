@@ -23,12 +23,11 @@ public class AccessManagementApiController : Controller
         try
         {
             var selfSignUpResult = await 
-                _accessManagementService.SelfSignUp(selfSignupRequestDto.Email, selfSignupRequestDto.Password, selfSignupRequestDto.Country);
+                _accessManagementService.SelfSignUp(selfSignupRequestDto.Email, selfSignupRequestDto.Password, selfSignupRequestDto.Country, selfSignupRequestDto.EmployerName);
             var selfSignupResponseDto = new SelfSignupResponseDto
             {
-                SignedIn = selfSignUpResult.SignedIn,
                 UserId = selfSignUpResult.UserId,
-                EmployerId = selfSignUpResult.EmployerId
+                UserAccessType = selfSignUpResult.UserAccessType.ToString()
             };
 
             return Ok(selfSignupResponseDto);

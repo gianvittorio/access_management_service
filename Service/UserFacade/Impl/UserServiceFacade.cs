@@ -7,7 +7,7 @@ public class UserServiceFacade : IUserServiceFacade
 {
     private static readonly Fixture AutoFixture = new();
     
-    public Task<UserResponseDto?> FindUserByUserId(string userId)
+    public Task<UserResponseDto?> FindUserByUserIdAsync(string userId)
     {
         var userResponseDto = AutoFixture.Build<UserResponseDto>()
             .With(user => user.UserId, userId)
@@ -16,18 +16,18 @@ public class UserServiceFacade : IUserServiceFacade
         return Task.FromResult(userResponseDto)!;
     }
 
-    public Task<UserResponseDto?> FindUserByEmail(string email)
+    public Task<UserResponseDto?> FindUserByEmailAsync(string email)
     {
-        // var userResponseDto = AutoFixture.Build<UserResponseDto>()
-        //     .With(user => user.Email, email)
-        //     .Create();
-        //
-        // return Task.FromResult(userResponseDto)!;
+        var userResponseDto = AutoFixture.Build<UserResponseDto>()
+            .With(user => user.Email, email)
+            .Create();
+        
+        return Task.FromResult(userResponseDto)!;
 
-        return Task.FromResult<UserResponseDto?>(null);
+        //return Task.FromResult<UserResponseDto?>(null);
     }
-
-    public Task<UserResponseDto> CreateUser(UserRequestDto userRequestDto)
+    
+    public Task<UserResponseDto> SaveUserAsync(UserRequestDto userRequestDto)
     {
         var userResponseDto = new UserResponseDto
         {
@@ -44,27 +44,9 @@ public class UserServiceFacade : IUserServiceFacade
 
         return Task.FromResult(userResponseDto);
     }
-
-    public Task<UserResponseDto> UpdateUser(string userId, UserRequestDto userRequestDto)
+    
+    public Task RemoveUserAsync(string userEmail)
     {
-        var userResponseDto = new UserResponseDto
-        {
-            UserId = userRequestDto.UserId ?? string.Empty,
-            Email = userRequestDto.Email,
-            AccessType = userRequestDto.AccessType,
-            BirthDate = userRequestDto.BirthDate,
-            Country = userRequestDto.Country,
-            EmployerId = userRequestDto.EmployerId,
-            FullName = userRequestDto.FullName,
-            Password = userRequestDto.Password,
-            Salary = userRequestDto.Salary
-        };
-
-        return Task.FromResult(userResponseDto);
-    }
-
-    public Task<bool> RemoveUser(string userId)
-    {
-        return Task.FromResult(true);
+        return Task.CompletedTask;
     }
 }

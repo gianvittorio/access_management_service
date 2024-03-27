@@ -4,13 +4,11 @@ namespace AccessManagementService.Service.UserFacade;
 
 public interface IUserServiceFacade
 {
-    Task<UserResponseDto?> FindUserByUserId(string userId);
+    Task<UserResponseDto?> FindUserByUserIdAsync(string userId);
     
-    Task<UserResponseDto?> FindUserByEmail(string email);
+    Task<UserResponseDto?> FindUserByEmailAsync(string email);
 
-    Task<UserResponseDto> CreateUser(UserRequestDto userRequestDto);
-
-    Task<UserResponseDto> UpdateUser(string userId, UserRequestDto userRequestDto);
-
-    Task<bool> RemoveUser(string userId);
+    Task<UserResponseDto> SaveUserAsync(UserRequestDto userRequestDto);
+    
+    Task RemoveUserAsync(string userEmail);
 }

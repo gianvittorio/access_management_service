@@ -1,19 +1,28 @@
+using AccessManagementService.Persistence.Repository;
+using AccessManagementService.Persistence.Repository.Impl;
 using AccessManagementService.Service.AccessManagement;
+using AccessManagementService.Service.EmployerFacade;
+using AccessManagementService.Service.EmployerFacade.Impl;
 using AccessManagementService.Service.UserFacade;
 using AccessManagementService.Service.UserFacade.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers
-builder.Services.AddControllers();
+
+// Add repositories
+builder.Services
+    .AddSingleton<IAccessManagementRepository, AccessManagementRepository>();
 
 // Add services
 builder.Services
-    .AddSingleton<IUserServiceFacade,
-        UserServiceFacade>();
+    .AddSingleton<IUserServiceFacade, UserServiceFacade>();
 builder.Services
-    .AddSingleton<IAccessManagementService,
-        AccessManagementService.Service.AccessManagement.Impl.AccessManagementService>();
+    .AddSingleton<IEmployerServiceFacade, EmployerServiceFacade>();
+builder.Services
+    .AddSingleton<IAccessManagementService, AccessManagementService.Service.AccessManagement.Impl.AccessManagementService>();
+
+// Add controllers
+builder.Services.AddControllers();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -15,4 +15,8 @@ public class SelfSignupRequestDto
     [JsonPropertyName("country")]
     [JsonRequired]
     public string Country { get; set; } = null!;
+
+    [JsonPropertyName("employer_name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string? EmployerName { get; set; }
 }
