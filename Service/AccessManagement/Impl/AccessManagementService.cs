@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using AccessManagementService.Domain.Core.Lib.CsvFileProcessing.Impl;
+using AccessManagementService.Domain.Core.Lib.EligibilityFileProcessing;
 using AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
 using AccessManagementService.Persistence.Entities;
 using AccessManagementService.Persistence.Repository;
@@ -115,13 +116,33 @@ public class AccessManagementService : IAccessManagementService
 
     public async Task<FileProcessingResult> DownloadAndProcessEligibilityFileAsync(string fileUrl, string employerName)
     {
-        // To do: Process line by line, updating each and and every user's country and salary, as well as terminating user's
-        // accounts no longer listed in eligibility file
         using var response = await _httpClient.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead);
         await using var responseContentStream = await response.Content.ReadAsStreamAsync();
         using var streamReader = new StreamReader(responseContentStream);
         var eligibilityFileStreamProcessor = new EligibilityFileStreamProcessor(employerName);
         var fileProcessingResult = await eligibilityFileStreamProcessor.Process(streamReader);
+
+        var usersSaveTasks = fileProcessingResult.Users.Select(user => new UserEntity
+            {
+                Email = user.Email,
+                FullName = user.FullName,
+                Country = user.Country,
+                BirthDate = DateTime.Parse(user.BirthDate, DateTimeFormatInfo.InvariantInfo),
+                Salary = user.Salary,
+                EmployerName = employerName
+            })
+            .Select(userEntity => _accessManagementRepository.SaveUser(userEntity))
+            .Cast<Task>()
+            .ToList();
+        await Task.WhenAll(usersSaveTasks);
+
+        var usersForEmployerName = (await _accessManagementRepository.FindUsersByEmployerName(employerName));
+        var usersToBeRemoved = usersForEmployerName
+            .ExceptBy(fileProcessingResult.Users.Select(user => user.Email), user => user.Email);
+        
+        var usersRemoveTasks = usersToBeRemoved
+            .Select(userEntity => _accessManagementRepository.RemoveUser(userEntity.Email)).ToList();
+        await Task.WhenAll(usersRemoveTasks);
 
         return fileProcessingResult;
     }

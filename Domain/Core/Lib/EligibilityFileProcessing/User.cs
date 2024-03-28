@@ -1,4 +1,4 @@
-namespace AccessManagementService.Service.AccessManagement.Model;
+namespace AccessManagementService.Domain.Core.Lib.EligibilityFileProcessing;
 
 public class User
 {

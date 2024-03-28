@@ -1,4 +1,5 @@
 using System.Globalization;
+using AccessManagementService.Domain.Core.Lib.EligibilityFileProcessing;
 using AccessManagementService.Service.AccessManagement.Model;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -25,7 +26,7 @@ public class EligibilityFileStreamProcessor(string employerName) : IEligibilityF
         {
             try
             {
-                _ = csvReader.GetRecord<User>();
+                fileProcessingResult.Users.Add(csvReader.GetRecord<User>());
                 fileProcessingResult.ProcessedLines.Add(csvReader.Parser.RawRecord);
             }
             catch (Exception)
