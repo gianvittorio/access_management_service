@@ -1,4 +1,5 @@
 using AccessManagementService.Persistence.Entities;
+using AccessManagementService.Persistence.Postgres;
 using AutoFixture;
 
 namespace AccessManagementService.Persistence.Repository.Impl;
@@ -6,6 +7,14 @@ namespace AccessManagementService.Persistence.Repository.Impl;
 public class AccessManagementRepository : IAccessManagementRepository
 {
     private static readonly Fixture AutoFixture = new();
+
+    private readonly AppDbContext _dbContext;
+
+    public AccessManagementRepository(IServiceScopeFactory serviceScopeFactory)
+    {
+        var scope = serviceScopeFactory.CreateScope();
+        _dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    }
 
     public Task<UserEntity?> FindUserByEmailAsync(string email)
     {

@@ -1,3 +1,4 @@
+using AccessManagementService.Persistence.Postgres;
 using AccessManagementService.Persistence.Repository;
 using AccessManagementService.Persistence.Repository.Impl;
 using AccessManagementService.Service.AccessManagement;
@@ -5,9 +6,13 @@ using AccessManagementService.Service.EmployerFacade;
 using AccessManagementService.Service.EmployerFacade.Impl;
 using AccessManagementService.Service.UserFacade;
 using AccessManagementService.Service.UserFacade.Impl;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add db context
+builder.Services.AddEntityFrameworkNpgsql()
+    .AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add repositories
 builder.Services
