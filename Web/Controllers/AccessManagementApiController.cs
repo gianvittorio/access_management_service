@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Net;
+using AccessManagementService.Domain.Core.Lib.EligibilityFileProcessing;
 using AccessManagementService.Service.AccessManagement;
 using AccessManagementService.Web.Dtos.EmployerSignup;
 using AccessManagementService.Web.Dtos.SelfSignup;
@@ -17,8 +19,18 @@ public class AccessManagementApiController(IAccessManagementService accessManage
     {
         try
         {
+            var userCredentials = new UserCredentials
+            {
+                Email = selfSignupRequestDto.Email,
+                Password = selfSignupRequestDto.Password,
+                EmployerName = selfSignupRequestDto.EmployerName,
+                FullName = selfSignupRequestDto.FullName ?? string.Empty,
+                Country = selfSignupRequestDto.Country ?? string.Empty,
+                BirthDate = selfSignupRequestDto.BirthDate is null ? DateTime.MinValue.ToString(CultureInfo.InvariantCulture) : selfSignupRequestDto.BirthDate.Value.ToString(CultureInfo.InvariantCulture),
+                Salary = selfSignupRequestDto.Salary ?? Decimal.Zero
+            };
             var selfSignUpResult = await 
-                _accessManagementService.SelfSignUpAsync(selfSignupRequestDto.Email, selfSignupRequestDto.Password, selfSignupRequestDto.Country, selfSignupRequestDto.EmployerName);
+                _accessManagementService.SelfSignUpAsync(userCredentials);
             var selfSignupResponseDto = new SelfSignupResponseDto
             {
                 UserId = selfSignUpResult.UserId,

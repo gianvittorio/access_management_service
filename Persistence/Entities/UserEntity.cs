@@ -8,5 +8,5 @@ public class UserEntity
     public string Country { get; set; } = null!;
     public DateTime BirthDate { get; set; }
     public Decimal Salary { get; set; }
-    public string EmployerName { get; set; } = null!;
+    public string? EmployerId { get; set; }
 }

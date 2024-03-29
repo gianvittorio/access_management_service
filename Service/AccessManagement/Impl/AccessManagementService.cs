@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net;
 using AccessManagementService.Domain.Core.Lib.CsvFileProcessing.Impl;
 using AccessManagementService.Domain.Core.Lib.EligibilityFileProcessing;
 using AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
@@ -10,15 +9,13 @@ using AccessManagementService.Service.EmployerFacade;
 using AccessManagementService.Service.UserFacade;
 using AccessManagementService.Service.UserFacade.Dtos;
 using AutoFixture;
-using CsvHelper;
-using CsvHelper.Configuration;
 
 namespace AccessManagementService.Service.AccessManagement.Impl;
 
 public class AccessManagementService : IAccessManagementService
 {
     private static readonly Fixture AutoFixture = new();
-    private HttpClient _httpClient;
+    private readonly HttpClient _httpClient;
     private readonly IUserServiceFacade _userServiceFacade;
     private readonly IEmployerServiceFacade _employerServiceFacade;
     private readonly IAccessManagementRepository _accessManagementRepository;
@@ -36,65 +33,71 @@ public class AccessManagementService : IAccessManagementService
         _httpClient = httpClient;
     }
 
-    public async Task<SelfSignupResult> SelfSignUpAsync(string userEmail, string password, string country, string employerName)
+    public async Task<SelfSignupResult> SelfSignUpAsync(UserCredentials userCredentials)
     {
-        if (string.IsNullOrWhiteSpace(userEmail) ||
-            string.IsNullOrWhiteSpace(password) ||
-            string.IsNullOrWhiteSpace(country))
+        if (string.IsNullOrWhiteSpace(userCredentials.Email) ||
+            string.IsNullOrWhiteSpace(userCredentials.Password))
         {
             throw new ArgumentException();
         }
 
-        if (!IsPasswordValid(password))
+        if (!IsPasswordValid(userCredentials.Password))
         {
             throw new ArgumentException();
         }
 
+        EligibilityMetadataEntity? eligibilityMetadataForEmployerName = null;
         User? employeeUser = null;
-        if (!string.IsNullOrWhiteSpace(employerName))
+        if (!string.IsNullOrWhiteSpace(userCredentials.EmployerName))
         {
-            var eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerName(employerName);
-            var fileProcessingResult = await DownloadAndProcessEligibilityFileAsync(eligibilityMetadataForEmployerName.FileUrl, employerName);
-            employeeUser = FindRegisteredUserByEmail(userEmail, fileProcessingResult);
+            eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerName(userCredentials.EmployerName);
+            var fileProcessingResult = await DownloadAndProcessEligibilityFileAsync(eligibilityMetadataForEmployerName.FileUrl, userCredentials.EmployerName);
+            employeeUser = FindRegisteredUserByEmail(userCredentials.Email, fileProcessingResult);
         }
         
-        UserResponseDto? userResponseDto;
+        UserAccessType userAccessType;
+        string? employerId = null;
+        UserEntity? persistedUserEntity;
         if (employeeUser is not null)
         {
-            var userRequestDto = new UserRequestDto
+            userAccessType = UserAccessType.Employer;
+            employerId = await _employerServiceFacade.FindEmployerIdByEmployerName(userCredentials.EmployerName!);
+            
+            var userEntity = new UserEntity
             {
-                Email = userEmail,
-                Password = password,
-                Country = employeeUser.Country,
-                AccessType = UserAccessType.Employer,
-                FullName = employeeUser.FullName,
-                BirthDate = DateTime.Parse(employeeUser.BirthDate, CultureInfo.InvariantCulture),
-                Salary = employeeUser.Salary,
-                EmployerId = await _employerServiceFacade.FindEmployerIdByEmployerName(employerName)
+                Email = userCredentials.Email,
+                FullName = userCredentials.FullName,
+                Country = userCredentials.Country,
+                BirthDate = DateTime.Parse(userCredentials.BirthDate, DateTimeFormatInfo.InvariantInfo),
+                Salary = userCredentials.Salary,
+                EmployerId = eligibilityMetadataForEmployerName?.Id
             };
-            userResponseDto = await _userServiceFacade.SaveUserAsync(userRequestDto);
+            persistedUserEntity = await _accessManagementRepository.SaveUser(userEntity);
         }
         else
         {
-            userResponseDto = await _userServiceFacade.FindUserByEmailAsync(userEmail);
-            if (userResponseDto is null)
-            {
-                var userRequestDto = new UserRequestDto
-                {
-                    Email = userEmail,
-                    Password = password,
-                    Country = country,
-                    AccessType = UserAccessType.Dtc,
-                };
-                
-                userResponseDto = await _userServiceFacade.SaveUserAsync(userRequestDto);
-            }
+            userAccessType = UserAccessType.Dtc;
+            persistedUserEntity = await _accessManagementRepository.FindUserByEmailAsync(userCredentials.Email);
         }
+        
+        var userRequestDto = new UserRequestDto
+        {
+            Email = userCredentials.Email,
+            Password = userCredentials.Password,
+            Country = userCredentials.Country,
+            AccessType = userAccessType,
+            FullName = userCredentials.FullName,
+            BirthDate = DateTime.Parse(userCredentials.BirthDate, CultureInfo.InvariantCulture),
+            Salary = userCredentials.Salary,
+            EmployerId = employerId
+        };
+        _ = await _userServiceFacade.SaveUserAsync(userRequestDto);
         
         var selfSignupResult = new SelfSignupResult
         {
-            UserId = userResponseDto.UserId,
-            UserAccessType = userResponseDto.AccessType
+            SignedIn = persistedUserEntity is not null,
+            UserId = persistedUserEntity?.Id,
+            UserAccessType = userAccessType
         };
 
         return selfSignupResult;
@@ -116,6 +119,13 @@ public class AccessManagementService : IAccessManagementService
 
     public async Task<FileProcessingResult> DownloadAndProcessEligibilityFileAsync(string fileUrl, string employerName)
     {
+        var eligibilityMetadataEntity = new EligibilityMetadataEntity
+        {
+            FileUrl = fileUrl,
+            EmployerName = employerName
+        };
+        var persistedEligibilityMetadataEntity = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerName(employerName)
+                                                 ?? await _accessManagementRepository.SaveEligibilityMetadataEntityAsync(eligibilityMetadataEntity);
         using var response = await _httpClient.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead);
         await using var responseContentStream = await response.Content.ReadAsStreamAsync();
         using var streamReader = new StreamReader(responseContentStream);
@@ -129,7 +139,7 @@ public class AccessManagementService : IAccessManagementService
                 Country = user.Country,
                 BirthDate = DateTime.Parse(user.BirthDate, DateTimeFormatInfo.InvariantInfo),
                 Salary = user.Salary,
-                EmployerName = employerName
+                EmployerId = persistedEligibilityMetadataEntity.Id
             })
             .Select(userEntity => _accessManagementRepository.SaveUser(userEntity))
             .Cast<Task>()

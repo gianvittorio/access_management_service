@@ -5,7 +5,7 @@ namespace AccessManagementService.Service.AccessManagement;
 
 public interface IAccessManagementService
 {
-    Task<SelfSignupResult> SelfSignUpAsync(string userEmail, string password, string country, string? employerName = null);
+    Task<SelfSignupResult> SelfSignUpAsync(UserCredentials userCredentials);
 
     Task<FileProcessingResult> SaveEligibilityMetadataAsync(string fileUrl, string employerName);
 

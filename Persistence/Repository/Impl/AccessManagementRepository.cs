@@ -11,6 +11,7 @@ public class AccessManagementRepository : IAccessManagementRepository
     {
         var userEntity = AutoFixture.Build<UserEntity>()
             .With(user => user.Email, email)
+            .With(user => user.BirthDate, DateTime.MinValue)
             .Create();
 
         return Task.FromResult(userEntity)!;
@@ -26,7 +27,7 @@ public class AccessManagementRepository : IAccessManagementRepository
             Country = userEntity.Country,
             BirthDate = userEntity.BirthDate,
             Salary = userEntity.Salary,
-            EmployerName = userEntity.EmployerName
+            EmployerId = userEntity.EmployerId
         };
 
         return Task.FromResult(newUserEntity);
@@ -40,24 +41,30 @@ public class AccessManagementRepository : IAccessManagementRepository
     public Task<List<UserEntity>> FindUsersByEmployerName(string employerName)
     {
         var userEntities = AutoFixture.Build<UserEntity>()
-            .With(user => user.EmployerName, employerName)
             .CreateMany()
             .ToList();
         
         return Task.FromResult(userEntities);
     }
 
-    public Task SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity)
+    public Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity)
     {
-        return Task.CompletedTask;
+        var persistedEligibilityMetadataEntity = new EligibilityMetadataEntity
+        {
+            Id = Guid.NewGuid().ToString(),
+            FileUrl = eligibilityMetadataEntity.FileUrl,
+            EmployerName = eligibilityMetadataEntity.EmployerName
+        };
+
+        return Task.FromResult(persistedEligibilityMetadataEntity);
     }
 
-    public Task<EligibilityMetadataEntity> FindEligibilityMetadataEntityByEmployerName(string employerName)
+    public Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerName(string employerName)
     {
         var eligibilityMetadataEntity = AutoFixture.Build<EligibilityMetadataEntity>()
             .With(entity => entity.EmployerName, employerName)
             .Create();
 
-        return Task.FromResult(eligibilityMetadataEntity);
+        return Task.FromResult(eligibilityMetadataEntity)!;
     }
 }
