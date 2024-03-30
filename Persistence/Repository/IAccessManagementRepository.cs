@@ -8,11 +8,11 @@ public interface IAccessManagementRepository
 
     Task<UserEntity> SaveUser(UserEntity userEntity);
 
-    Task RemoveUser(string email);
+    Task<bool> RemoveUser(string email);
     
     Task<List<UserEntity>> FindUsersByEmployerName(string employerName);
     
-    Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity);
-    
     Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerName(string employerName);
+    
+    Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity);
 }

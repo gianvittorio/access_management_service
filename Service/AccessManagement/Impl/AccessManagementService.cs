@@ -62,23 +62,22 @@ public class AccessManagementService : IAccessManagementService
         {
             userAccessType = UserAccessType.Employer;
             employerId = await _employerServiceFacade.FindEmployerIdByEmployerName(userCredentials.EmployerName!);
-            
-            var userEntity = new UserEntity
-            {
-                Email = userCredentials.Email,
-                FullName = userCredentials.FullName,
-                Country = userCredentials.Country,
-                BirthDate = DateTime.Parse(userCredentials.BirthDate, DateTimeFormatInfo.InvariantInfo),
-                Salary = userCredentials.Salary,
-                EmployerId = eligibilityMetadataForEmployerName?.Id
-            };
-            persistedUserEntity = await _accessManagementRepository.SaveUser(userEntity);
         }
         else
         {
             userAccessType = UserAccessType.Dtc;
-            persistedUserEntity = await _accessManagementRepository.FindUserByEmailAsync(userCredentials.Email);
         }
+        
+        var userEntity = new UserEntity
+        {
+            Email = userCredentials.Email,
+            FullName = userCredentials.FullName,
+            Country = userCredentials.Country,
+            BirthDate = DateTime.Parse(userCredentials.BirthDate, DateTimeFormatInfo.InvariantInfo),
+            Salary = userCredentials.Salary,
+            EmployerId = eligibilityMetadataForEmployerName?.EmployerId
+        };
+        persistedUserEntity = await _accessManagementRepository.SaveUser(userEntity);
         
         var userRequestDto = new UserRequestDto
         {
@@ -139,7 +138,7 @@ public class AccessManagementService : IAccessManagementService
                 Country = user.Country,
                 BirthDate = DateTime.Parse(user.BirthDate, DateTimeFormatInfo.InvariantInfo),
                 Salary = user.Salary,
-                EmployerId = persistedEligibilityMetadataEntity.Id
+                EmployerId = persistedEligibilityMetadataEntity.EmployerId
             })
             .Select(userEntity => _accessManagementRepository.SaveUser(userEntity))
             .Cast<Task>()

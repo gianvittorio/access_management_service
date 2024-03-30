@@ -26,7 +26,7 @@ services:
       - "5432:5432"
     volumes:
       - access_management_service_volume:/var/lib/postgresql/data
-      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+#      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
 
 volumes:
   access_management_service_volume:

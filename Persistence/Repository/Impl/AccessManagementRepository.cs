@@ -1,6 +1,7 @@
 using AccessManagementService.Persistence.Entities;
 using AccessManagementService.Persistence.Postgres;
 using AutoFixture;
+using Microsoft.EntityFrameworkCore;
 
 namespace AccessManagementService.Persistence.Repository.Impl;
 
@@ -8,72 +9,103 @@ public class AccessManagementRepository : IAccessManagementRepository
 {
     private static readonly Fixture AutoFixture = new();
 
-    private readonly AppDbContext _dbContext;
-
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    
     public AccessManagementRepository(IServiceScopeFactory serviceScopeFactory)
     {
-        var scope = serviceScopeFactory.CreateScope();
-        _dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        _serviceScopeFactory = serviceScopeFactory;
     }
-
-    public Task<UserEntity?> FindUserByEmailAsync(string email)
+    
+    private async Task<T> CallInScope<T>(Func<AppDbContext, Task<T>> func)
     {
-        var userEntity = AutoFixture.Build<UserEntity>()
-            .With(user => user.Email, email)
-            .With(user => user.BirthDate, DateTime.MinValue)
-            .Create();
-
-        return Task.FromResult(userEntity)!;
-    }
-
-    public Task<UserEntity> SaveUser(UserEntity userEntity)
-    {
-        var newUserEntity = new UserEntity
+        using var scope = _serviceScopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        try
         {
-            Id = AutoFixture.Create<string>(),
-            Email = userEntity.Email,
-            FullName = userEntity.FullName,
-            Country = userEntity.Country,
-            BirthDate = userEntity.BirthDate,
-            Salary = userEntity.Salary,
-            EmployerId = userEntity.EmployerId
-        };
+            await dbContext.Database.OpenConnectionAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+            var result = await func(dbContext);
+            await dbContext.SaveChangesAsync();
 
-        return Task.FromResult(newUserEntity);
-    }
-
-    public Task RemoveUser(string email)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task<List<UserEntity>> FindUsersByEmployerName(string employerName)
-    {
-        var userEntities = AutoFixture.Build<UserEntity>()
-            .CreateMany()
-            .ToList();
-        
-        return Task.FromResult(userEntities);
-    }
-
-    public Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity)
-    {
-        var persistedEligibilityMetadataEntity = new EligibilityMetadataEntity
+            return result;
+        }
+        finally
         {
-            Id = Guid.NewGuid().ToString(),
-            FileUrl = eligibilityMetadataEntity.FileUrl,
-            EmployerName = eligibilityMetadataEntity.EmployerName
-        };
-
-        return Task.FromResult(persistedEligibilityMetadataEntity);
+            await dbContext.Database.CloseConnectionAsync();
+        }
     }
 
-    public Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerName(string employerName)
+    public async Task<UserEntity?> FindUserByEmailAsync(string email)
     {
-        var eligibilityMetadataEntity = AutoFixture.Build<EligibilityMetadataEntity>()
-            .With(entity => entity.EmployerName, employerName)
-            .Create();
+        return await CallInScope(async dbContext => await dbContext.Users.FirstOrDefaultAsync(user => user.Email == email));
+    }
 
-        return Task.FromResult(eligibilityMetadataEntity)!;
+    public async Task<UserEntity> SaveUser(UserEntity userEntity)
+    {
+        return await CallInScope(async dbContext =>
+        {
+            var persistedEntity = await dbContext.Users.FirstOrDefaultAsync(entity => entity.Email == userEntity.Email);
+            if (persistedEntity is not null)
+            {
+                persistedEntity.FullName = userEntity.FullName;
+                persistedEntity.Country = userEntity.Country;
+                persistedEntity.BirthDate = userEntity.BirthDate;
+                persistedEntity.Salary = userEntity.Salary;
+                persistedEntity.EmployerId = userEntity.EmployerId;
+            }
+            else
+            {
+                persistedEntity = (await dbContext.Users.AddAsync(userEntity)).Entity;
+            }
+
+            return persistedEntity;
+        });
+    }
+
+    public async Task<bool> RemoveUser(string email)
+    {
+        return await CallInScope(async dbContext =>
+        {
+            var userEntity = await dbContext.Users.FirstOrDefaultAsync(entity => entity.Email == email);
+            if (userEntity is null)
+            {
+                return false;
+            }
+            
+            dbContext.Users.Remove(userEntity);
+            return true;
+        });
+    }
+
+    public async Task<List<UserEntity>> FindUsersByEmployerName(string employerName)
+    {
+        return await CallInScope(async dbContext => await dbContext.EligibilityMetadata
+            .Where(metadataEntity => metadataEntity.EmployerName == employerName)
+            .SelectMany(metadataEntity => metadataEntity.Users)
+            .ToListAsync());
+    }
+
+    public async Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerName(string employerName)
+    {
+        return await CallInScope(async dbContext => await dbContext.EligibilityMetadata.FirstOrDefaultAsync(entity => entity.EmployerName == employerName));
+    }
+    
+    public async Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity)
+    {
+        return await CallInScope(async dbContext =>
+        {
+            var persistedEntity = await dbContext.EligibilityMetadata.FirstOrDefaultAsync(entity => entity.EmployerName == eligibilityMetadataEntity.EmployerName);
+            if (persistedEntity is not null)
+            {
+                persistedEntity.FileUrl = eligibilityMetadataEntity.FileUrl;
+                persistedEntity.Users = eligibilityMetadataEntity.Users;
+            }
+            else
+            {
+                persistedEntity = (await dbContext.EligibilityMetadata.AddAsync(eligibilityMetadataEntity)).Entity;
+            }
+
+            return persistedEntity;
+        });
     }
 }
