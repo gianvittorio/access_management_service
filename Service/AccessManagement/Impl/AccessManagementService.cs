@@ -57,7 +57,6 @@ public class AccessManagementService : IAccessManagementService
         
         UserAccessType userAccessType;
         string? employerId = null;
-        UserEntity? persistedUserEntity;
         if (employeeUser is not null)
         {
             userAccessType = UserAccessType.Employer;
@@ -77,7 +76,7 @@ public class AccessManagementService : IAccessManagementService
             Salary = userCredentials.Salary,
             EmployerId = eligibilityMetadataForEmployerName?.EmployerId
         };
-        persistedUserEntity = await _accessManagementRepository.SaveUser(userEntity);
+        var persistedUserEntity = await _accessManagementRepository.SaveUser(userEntity);
         
         var userRequestDto = new UserRequestDto
         {
@@ -94,8 +93,7 @@ public class AccessManagementService : IAccessManagementService
         
         var selfSignupResult = new SelfSignupResult
         {
-            SignedIn = persistedUserEntity is not null,
-            UserId = persistedUserEntity?.Id,
+            UserId = persistedUserEntity.Id,
             UserAccessType = userAccessType
         };
 

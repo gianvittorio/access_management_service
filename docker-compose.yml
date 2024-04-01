@@ -13,6 +13,15 @@ services:
 #      - "access_management_service_network"
 #    volumes:
 #      - "access_management_service_volume:/tmp/access_management_service/logs"
+  wiremock:
+    container_name: 'wiremock'
+    build:
+      context: ./Wiremock
+    ports:
+      - "8083:8080"
+    networks:
+      - "access_management_service_network"
+  
   postgres_db:
     container_name: 'postgres_db'
     image: postgres:13.4-alpine

@@ -1,0 +1,11 @@
+{
+  "id": "{{randomInt lower=0}}",
+  "email": "{{jsonPath request.body '$.email'}}",
+  "password": "{{jsonPath request.body '$.password'}}",
+  "country": "{{jsonPath request.body '$.country'}}",
+  "access_type": "{{jsonPath request.body '$.access_type'}}",
+  "full_name": "{{jsonPath request.body '$.full_name'}}",
+  "employer_id": "{{jsonPath request.body '$.employer_id'}}",
+  "birth_date": "{{jsonPath request.body '$.birth_date'}}",
+  "salary": "{{jsonPath request.body '$.salary'}}"
+}

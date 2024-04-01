@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/users",
+    "bodyPatterns": [
+      {"matchesJsonPath" : "$.email"},
+      {"matchesJsonPath" : "$.password"},
+      {"matchesJsonPath" : "$.country"},
+      {"matchesJsonPath" : "$.access_type"}
+    ]
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "save_user_template.json"
+  }
+}

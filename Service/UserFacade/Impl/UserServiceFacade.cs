@@ -10,7 +10,7 @@ public class UserServiceFacade : IUserServiceFacade
     public Task<UserResponseDto?> FindUserByUserIdAsync(string userId)
     {
         var userResponseDto = AutoFixture.Build<UserResponseDto>()
-            .With(user => user.UserId, userId)
+            .With(user => user.Id, userId)
             .Create();
 
         return Task.FromResult(userResponseDto)!;
@@ -31,7 +31,7 @@ public class UserServiceFacade : IUserServiceFacade
     {
         var userResponseDto = new UserResponseDto
         {
-            UserId = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid().ToString(),
             Email = userRequestDto.Email,
             AccessType = userRequestDto.AccessType,
             BirthDate = userRequestDto.BirthDate,
