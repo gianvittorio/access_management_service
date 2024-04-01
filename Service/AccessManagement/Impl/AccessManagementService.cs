@@ -48,12 +48,11 @@ public class AccessManagementService : IAccessManagementService
         {
             throw new PasswordValidationException { PasswordValidationResult = passwordValidationResult };
         }
-        
-        EligibilityMetadataEntity? eligibilityMetadataForEmployerName = null;
+
         User? employeeUser = null;
         if (!string.IsNullOrWhiteSpace(userCredentials.EmployerName))
         {
-            eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerNameAsync(userCredentials.EmployerName);
+            var eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerNameAsync(userCredentials.EmployerName);
             var fileProcessingResult = await DownloadAndProcessEligibilityFileAsync(eligibilityMetadataForEmployerName.FileUrl, userCredentials.EmployerName);
             employeeUser = FindRegisteredUserByEmail(userCredentials.Email, fileProcessingResult);
         }
@@ -69,34 +68,26 @@ public class AccessManagementService : IAccessManagementService
         {
             userAccessType = UserAccessType.Dtc;
         }
-        
-        var userEntity = new UserEntity
+
+        var userResponseDto = await _userServiceFacade.FindUserByEmailAsync(userCredentials.Email);
+        if (userResponseDto is null)
         {
-            Email = userCredentials.Email,
-            FullName = userCredentials.FullName,
-            Country = userCredentials.Country,
-            BirthDate = DateTime.Parse(userCredentials.BirthDate, DateTimeFormatInfo.InvariantInfo),
-            Salary = userCredentials.Salary,
-            EmployerId = eligibilityMetadataForEmployerName?.EmployerId
-        };
-        var persistedUserEntity = await _accessManagementRepository.SaveUserAsync(userEntity);
-        
-        var userRequestDto = new UserRequestDto
-        {
-            Email = userCredentials.Email,
-            Password = userCredentials.Password,
-            Country = userCredentials.Country,
-            AccessType = userAccessType.ToString(),
-            FullName = userCredentials.FullName,
-            BirthDate = DateTime.Parse(userCredentials.BirthDate, CultureInfo.InvariantCulture),
-            Salary = userCredentials.Salary,
-            EmployerId = employerId
-        };
-        _ = await _userServiceFacade.SaveUserAsync(userRequestDto);
-        
+            var userRequestDto = new UserRequestDto
+            {
+                Email = userCredentials.Email,
+                Password = userCredentials.Password,
+                Country = userCredentials.Country,
+                AccessType = userAccessType.ToString(),
+                FullName = userCredentials.FullName,
+                BirthDate = DateTime.Parse(userCredentials.BirthDate, DateTimeFormatInfo.CurrentInfo).ToUniversalTime(),
+                EmployerId = employerId
+            };
+            userResponseDto = await _userServiceFacade.SaveUserAsync(userRequestDto);
+        }
+
         var selfSignupResult = new SelfSignupResult
         {
-            UserId = persistedUserEntity.Id,
+            UserId = userResponseDto.Id,
             UserAccessType = userAccessType
         };
 
@@ -131,33 +122,35 @@ public class AccessManagementService : IAccessManagementService
         using var streamReader = new StreamReader(responseContentStream);
         var eligibilityFileStreamProcessor = new EligibilityFileStreamProcessor(employerName);
         var fileProcessingResult = await eligibilityFileStreamProcessor.Process(streamReader);
-
-        foreach (var user in fileProcessingResult.Users)
-        {
-            var userEntity = new UserEntity
-            {
-                Email = user.Email,
-                FullName = user.FullName,
-                Country = user.Country,
-                BirthDate = DateTime.Parse(user.BirthDate, DateTimeFormatInfo.CurrentInfo).ToUniversalTime(),
-                Salary = user.Salary,
-                EmployerId = persistedEligibilityMetadataEntity.EmployerId
-            };
-            await _accessManagementRepository.SaveUserAsync(userEntity);
-        }
         
-        var usersForEmployerName = await _accessManagementRepository.FindUsersByEmployerNameAsync(employerName);
-        var usersToBeRemoved = usersForEmployerName
+        var usersForEmployerId = await _userServiceFacade.FindUsersByEmployerIdAsync(persistedEligibilityMetadataEntity.EmployerId.ToString());
+        var usersToBeRemoved = usersForEmployerId
             .ExceptBy(fileProcessingResult.Users.Select(user => user.Email), user => user.Email);
-
-        foreach (var currentUser in fileProcessingResult.Users)
-        {
-            _ = await _accessManagementRepository.UpdateUserCountryAndSalaryIfExistsAsync(currentUser.Email, currentUser.Country, currentUser.Salary);
-        }
-        
         foreach (var userToBeRemoved in usersToBeRemoved)
         {
             _ = await _accessManagementRepository.RemoveUserAsync(userToBeRemoved.Email);
+        }
+        
+        foreach (var currentUser in fileProcessingResult.Users)
+        {
+            var currentUserResponseDto = await _userServiceFacade.FindUserByEmailAsync(currentUser.Email);
+            if (currentUserResponseDto is null)
+            {
+                continue;
+            }
+
+            var userRequestDto = new UserRequestDto
+            {
+                Email = currentUserResponseDto.Email,
+                Password = currentUserResponseDto.Password,
+                Country = currentUserResponseDto.Country,
+                AccessType = currentUserResponseDto.AccessType,
+                FullName = currentUserResponseDto.FullName,
+                BirthDate = currentUserResponseDto.BirthDate,
+                EmployerId = currentUserResponseDto.EmployerId,
+                Salary = currentUser.Salary
+            };
+            _ = await _userServiceFacade.SaveUserAsync(userRequestDto);
         }
 
         return fileProcessingResult;

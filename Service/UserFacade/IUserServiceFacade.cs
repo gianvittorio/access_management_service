@@ -4,9 +4,9 @@ namespace AccessManagementService.Service.UserFacade;
 
 public interface IUserServiceFacade
 {
-    Task<UserResponseDto?> FindUserByUserIdAsync(string userId);
-    
     Task<UserResponseDto?> FindUserByEmailAsync(string email);
+    
+    Task<List<UserResponseDto>> FindUsersByEmployerIdAsync(string employerId);
 
     Task<UserResponseDto> SaveUserAsync(UserRequestDto userRequestDto);
     

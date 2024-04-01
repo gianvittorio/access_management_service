@@ -1,0 +1,13 @@
+[
+  {
+    "id": "{{randomValue length=5 type='NUMERIC'}}",
+    "email": "{{join (randomValue length=5 type='ALPHABETIC') 'gmail.com' '@'}}",
+    "password": "{{randomValue length=5 type='ALPHABETIC'}}",
+    "country": "{{randomValue length=5 type='ALPHABETIC'}}",
+    "access_type": "{{pickRandom 'dtc' 'employer'}}",
+    "full_name": "{{randomValue length=5 type='ALPHABETIC'}}",
+    "employer_id": "{{request.query.employer_id}}",
+    "birth_date": "1991-01-17",
+    "salary": "{{randomInt lower=0 upper=10000}}"
+  }
+]

@@ -1,4 +1,3 @@
-using AccessManagementService.Domain.Core.Lib.PasswordValidation;
 using AccessManagementService.Service.AccessManagement.Exceptions.PasswordValidation;
 using Microsoft.AspNetCore.Diagnostics;
 

@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/v1/users",
+    "queryParameters": {
+      "employer_id": {
+        "matches": "[A-Za-z0-9\\s]+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "find_users_by_employer_id_template.json"
+  }
+}

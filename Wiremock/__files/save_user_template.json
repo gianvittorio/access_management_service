@@ -1,5 +1,5 @@
 {
-  "id": "{{randomInt lower=0}}",
+  "id": "{{randomValue length=5 type='NUMERIC'}}",
   "email": "{{jsonPath request.body '$.email'}}",
   "password": "{{jsonPath request.body '$.password'}}",
   "country": "{{jsonPath request.body '$.country'}}",

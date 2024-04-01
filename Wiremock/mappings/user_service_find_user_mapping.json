@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/v1/users",
+    "queryParameters": {
+      "email": {
+        "matches": "^[^@]+@[^@]+\\.[^@]+$"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "find_user_template.json"
+  }
+}
