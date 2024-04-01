@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AccessManagementService.Persistence.Postgres;
 using AccessManagementService.Persistence.Repository;
 using AccessManagementService.Persistence.Repository.Impl;
@@ -9,6 +11,16 @@ using AccessManagementService.Service.UserFacade.Impl;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Add JsonSerializerOptions
+builder.Services
+    .AddSingleton<JsonSerializerOptions>(_ => new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString
+    });
 
 // Add repositories
 builder.Services

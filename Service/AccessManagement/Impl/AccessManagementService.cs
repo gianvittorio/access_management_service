@@ -35,22 +35,11 @@ public class AccessManagementService : IAccessManagementService
 
     public async Task<SelfSignupResult> SelfSignUpAsync(UserCredentials userCredentials)
     {
-        if (string.IsNullOrWhiteSpace(userCredentials.Email) ||
-            string.IsNullOrWhiteSpace(userCredentials.Password))
-        {
-            throw new ArgumentException();
-        }
-
-        if (!IsPasswordValid(userCredentials.Password))
-        {
-            throw new ArgumentException();
-        }
-
         EligibilityMetadataEntity? eligibilityMetadataForEmployerName = null;
         User? employeeUser = null;
         if (!string.IsNullOrWhiteSpace(userCredentials.EmployerName))
         {
-            eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerName(userCredentials.EmployerName);
+            eligibilityMetadataForEmployerName = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerNameAsync(userCredentials.EmployerName);
             var fileProcessingResult = await DownloadAndProcessEligibilityFileAsync(eligibilityMetadataForEmployerName.FileUrl, userCredentials.EmployerName);
             employeeUser = FindRegisteredUserByEmail(userCredentials.Email, fileProcessingResult);
         }
@@ -121,7 +110,7 @@ public class AccessManagementService : IAccessManagementService
             FileUrl = fileUrl,
             EmployerName = employerName
         };
-        var persistedEligibilityMetadataEntity = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerName(employerName)
+        var persistedEligibilityMetadataEntity = await _accessManagementRepository.FindEligibilityMetadataEntityByEmployerNameAsync(employerName)
                                                  ?? await _accessManagementRepository.SaveEligibilityMetadataEntityAsync(eligibilityMetadataEntity);
         using var response = await _httpClient.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead);
         await using var responseContentStream = await response.Content.ReadAsStreamAsync();
@@ -129,27 +118,28 @@ public class AccessManagementService : IAccessManagementService
         var eligibilityFileStreamProcessor = new EligibilityFileStreamProcessor(employerName);
         var fileProcessingResult = await eligibilityFileStreamProcessor.Process(streamReader);
 
-        var usersSaveTasks = fileProcessingResult.Users.Select(user => new UserEntity
+        foreach (var user in fileProcessingResult.Users)
+        {
+            var userEntity = new UserEntity
             {
                 Email = user.Email,
                 FullName = user.FullName,
                 Country = user.Country,
-                BirthDate = DateTime.Parse(user.BirthDate, DateTimeFormatInfo.InvariantInfo),
+                BirthDate = DateTime.Parse(user.BirthDate, DateTimeFormatInfo.CurrentInfo).ToUniversalTime(),
                 Salary = user.Salary,
                 EmployerId = persistedEligibilityMetadataEntity.EmployerId
-            })
-            .Select(userEntity => _accessManagementRepository.SaveUser(userEntity))
-            .Cast<Task>()
-            .ToList();
-        await Task.WhenAll(usersSaveTasks);
-
+            };
+            await _accessManagementRepository.SaveUser(userEntity);
+        }
+        
         var usersForEmployerName = (await _accessManagementRepository.FindUsersByEmployerName(employerName));
         var usersToBeRemoved = usersForEmployerName
             .ExceptBy(fileProcessingResult.Users.Select(user => user.Email), user => user.Email);
-        
-        var usersRemoveTasks = usersToBeRemoved
-            .Select(userEntity => _accessManagementRepository.RemoveUser(userEntity.Email)).ToList();
-        await Task.WhenAll(usersRemoveTasks);
+
+        foreach (var userToBeRemoved in usersToBeRemoved)
+        {
+            _ = _accessManagementRepository.RemoveUser(userToBeRemoved.Email);
+        }
 
         return fileProcessingResult;
     }

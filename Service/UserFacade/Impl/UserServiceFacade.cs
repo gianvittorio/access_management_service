@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using AccessManagementService.Service.UserFacade.Dtos;
 using AutoFixture;
 
@@ -9,14 +8,19 @@ namespace AccessManagementService.Service.UserFacade.Impl;
 public class UserServiceFacade : IUserServiceFacade
 {
     private static readonly Fixture AutoFixture = new();
-
+    private const string SaveUserEndpoint = "api/v1/users";
+    
+    private readonly string _userServiceUrl;
     private readonly HttpClient _httpClient;
-
-    public UserServiceFacade(HttpClient httpClient)
+    private readonly JsonSerializerOptions _serializerOptions;
+    
+    public UserServiceFacade(IConfiguration configuration, HttpClient httpClient, JsonSerializerOptions serializerOptions)
     {
+        _userServiceUrl = configuration["wiremock_host"]!;
         _httpClient = httpClient;
+        _serializerOptions = serializerOptions;
     }
-
+    
     public Task<UserResponseDto?> FindUserByUserIdAsync(string userId)
     {
         var userResponseDto = AutoFixture.Build<UserResponseDto>()
@@ -33,18 +37,17 @@ public class UserServiceFacade : IUserServiceFacade
             .Create();
         
         return Task.FromResult(userResponseDto)!;
-
-        //return Task.FromResult<UserResponseDto?>(null);
     }
     
     public async Task<UserResponseDto> SaveUserAsync(UserRequestDto userRequestDto)
     {
+        var hostUri = new Uri(_userServiceUrl);
         var requestUri = new UriBuilder
         {
-            Host = "localhost",
-            Scheme = "http",
-            Port = 8083,
-            Path = "api/v1/users"
+            Scheme = hostUri.Scheme,
+            Host = hostUri.Host,
+            Port = hostUri.Port,
+            Path = SaveUserEndpoint
         }.Uri;
 
         var contentJsonString = JsonSerializer.Serialize(userRequestDto);
@@ -52,13 +55,7 @@ public class UserServiceFacade : IUserServiceFacade
 
         var responseBodyString = await response.Content.ReadAsStringAsync();
 
-        var serializerOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
-        };
-        return JsonSerializer.Deserialize<UserResponseDto>(responseBodyString, serializerOptions)!;
+        return JsonSerializer.Deserialize<UserResponseDto>(responseBodyString, _serializerOptions)!;
     }
     
     public Task RemoveUserAsync(string userEmail)

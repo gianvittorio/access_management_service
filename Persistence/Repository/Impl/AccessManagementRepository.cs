@@ -85,9 +85,10 @@ public class AccessManagementRepository : IAccessManagementRepository
             .ToListAsync());
     }
 
-    public async Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerName(string employerName)
+    public async Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerNameAsync(string employerName)
     {
-        return await CallInScope(async dbContext => await dbContext.EligibilityMetadata.FirstOrDefaultAsync(entity => entity.EmployerName == employerName));
+        return await CallInScope(async dbContext => await dbContext.EligibilityMetadata
+            .FirstOrDefaultAsync(metadataEntity => metadataEntity.EmployerName == employerName));
     }
     
     public async Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity)

@@ -12,7 +12,7 @@ public interface IAccessManagementRepository
     
     Task<List<UserEntity>> FindUsersByEmployerName(string employerName);
     
-    Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerName(string employerName);
+    Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerNameAsync(string employerName);
     
     Task<EligibilityMetadataEntity> SaveEligibilityMetadataEntityAsync(EligibilityMetadataEntity eligibilityMetadataEntity);
 }
