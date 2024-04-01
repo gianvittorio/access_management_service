@@ -83,7 +83,7 @@ public class AccessManagementService : IAccessManagementService
             Email = userCredentials.Email,
             Password = userCredentials.Password,
             Country = userCredentials.Country,
-            AccessType = userAccessType,
+            AccessType = userAccessType.ToString(),
             FullName = userCredentials.FullName,
             BirthDate = DateTime.Parse(userCredentials.BirthDate, CultureInfo.InvariantCulture),
             Salary = userCredentials.Salary,
