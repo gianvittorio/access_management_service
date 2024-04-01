@@ -40,7 +40,7 @@ public class AccessManagementRepository : IAccessManagementRepository
         return await CallInScope(async dbContext => await dbContext.Users.FirstOrDefaultAsync(user => user.Email == email));
     }
 
-    public async Task<UserEntity> SaveUser(UserEntity userEntity)
+    public async Task<UserEntity> SaveUserAsync(UserEntity userEntity)
     {
         return await CallInScope(async dbContext =>
         {
@@ -62,7 +62,24 @@ public class AccessManagementRepository : IAccessManagementRepository
         });
     }
 
-    public async Task<bool> RemoveUser(string email)
+    public async Task<UserEntity?> UpdateUserCountryAndSalaryIfExistsAsync(string email, string country, decimal salary)
+    {
+        return await CallInScope(async dbContext =>
+        {
+            var persistedEntity = await dbContext.Users.FirstOrDefaultAsync(entity => entity.Email == email);
+            if (persistedEntity is null)
+            {
+                return persistedEntity;
+            }
+            
+            persistedEntity.Country = country;
+            persistedEntity.Salary = salary;
+
+            return persistedEntity;
+        });
+    }
+
+    public async Task<bool> RemoveUserAsync(string email)
     {
         return await CallInScope(async dbContext =>
         {
@@ -77,7 +94,7 @@ public class AccessManagementRepository : IAccessManagementRepository
         });
     }
 
-    public async Task<List<UserEntity>> FindUsersByEmployerName(string employerName)
+    public async Task<List<UserEntity>> FindUsersByEmployerNameAsync(string employerName)
     {
         return await CallInScope(async dbContext => await dbContext.EligibilityMetadata
             .Where(metadataEntity => metadataEntity.EmployerName == employerName)

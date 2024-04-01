@@ -6,11 +6,13 @@ public interface IAccessManagementRepository
 {
     Task<UserEntity?> FindUserByEmailAsync(string email);
 
-    Task<UserEntity> SaveUser(UserEntity userEntity);
-
-    Task<bool> RemoveUser(string email);
+    Task<UserEntity> SaveUserAsync(UserEntity userEntity);
     
-    Task<List<UserEntity>> FindUsersByEmployerName(string employerName);
+    Task<UserEntity?> UpdateUserCountryAndSalaryIfExistsAsync(string email, string country, decimal salary);
+
+    Task<bool> RemoveUserAsync(string email);
+    
+    Task<List<UserEntity>> FindUsersByEmployerNameAsync(string employerName);
     
     Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerNameAsync(string employerName);
     

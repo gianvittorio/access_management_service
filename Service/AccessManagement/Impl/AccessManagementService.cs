@@ -65,7 +65,7 @@ public class AccessManagementService : IAccessManagementService
             Salary = userCredentials.Salary,
             EmployerId = eligibilityMetadataForEmployerName?.EmployerId
         };
-        var persistedUserEntity = await _accessManagementRepository.SaveUser(userEntity);
+        var persistedUserEntity = await _accessManagementRepository.SaveUserAsync(userEntity);
         
         var userRequestDto = new UserRequestDto
         {
@@ -129,16 +129,21 @@ public class AccessManagementService : IAccessManagementService
                 Salary = user.Salary,
                 EmployerId = persistedEligibilityMetadataEntity.EmployerId
             };
-            await _accessManagementRepository.SaveUser(userEntity);
+            await _accessManagementRepository.SaveUserAsync(userEntity);
         }
         
-        var usersForEmployerName = (await _accessManagementRepository.FindUsersByEmployerName(employerName));
+        var usersForEmployerName = await _accessManagementRepository.FindUsersByEmployerNameAsync(employerName);
         var usersToBeRemoved = usersForEmployerName
             .ExceptBy(fileProcessingResult.Users.Select(user => user.Email), user => user.Email);
 
+        foreach (var currentUser in fileProcessingResult.Users)
+        {
+            _ = await _accessManagementRepository.UpdateUserCountryAndSalaryIfExistsAsync(currentUser.Email, currentUser.Country, currentUser.Salary);
+        }
+        
         foreach (var userToBeRemoved in usersToBeRemoved)
         {
-            _ = _accessManagementRepository.RemoveUser(userToBeRemoved.Email);
+            _ = await _accessManagementRepository.RemoveUserAsync(userToBeRemoved.Email);
         }
 
         return fileProcessingResult;
