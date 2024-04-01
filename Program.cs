@@ -8,6 +8,7 @@ using AccessManagementService.Service.EmployerFacade;
 using AccessManagementService.Service.EmployerFacade.Impl;
 using AccessManagementService.Service.UserFacade;
 using AccessManagementService.Service.UserFacade.Impl;
+using AccessManagementService.Web.ExceptionHandlers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +42,10 @@ builder.Services
 
 // Add controllers
 builder.Services.AddControllers();
+
+// Add exception handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Add db context
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -82,6 +87,8 @@ app.MapControllers();
 //     })
 //     .WithName("GetWeatherForecast")
 //     .WithOpenApi();
+
+app.UseExceptionHandler();
 
 app.Run();
 

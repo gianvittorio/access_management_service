@@ -1,9 +1,12 @@
 using System.Globalization;
+using System.Text.Json;
 using AccessManagementService.Domain.Core.Lib.CsvFileProcessing.Impl;
 using AccessManagementService.Domain.Core.Lib.EligibilityFileProcessing;
+using AccessManagementService.Domain.Core.Lib.PasswordValidation;
 using AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
 using AccessManagementService.Persistence.Entities;
 using AccessManagementService.Persistence.Repository;
+using AccessManagementService.Service.AccessManagement.Exceptions.PasswordValidation;
 using AccessManagementService.Service.AccessManagement.Model;
 using AccessManagementService.Service.EmployerFacade;
 using AccessManagementService.Service.UserFacade;
@@ -19,25 +22,31 @@ public class AccessManagementService : IAccessManagementService
     private readonly IUserServiceFacade _userServiceFacade;
     private readonly IEmployerServiceFacade _employerServiceFacade;
     private readonly IAccessManagementRepository _accessManagementRepository;
+    private readonly JsonSerializerOptions _serializerOptions;
+    private readonly IPasswordValidator _passwordValidator = new PasswordValidator();
+    
 
     public AccessManagementService(
         IUserServiceFacade userServiceFacade, 
         IAccessManagementRepository accessManagementRepository, 
         IEmployerServiceFacade employerServiceFacade, 
-        HttpClient httpClient
+        HttpClient httpClient,
+        JsonSerializerOptions serializerOptions
         )
     {
         _userServiceFacade = userServiceFacade;
         _accessManagementRepository = accessManagementRepository;
         _employerServiceFacade = employerServiceFacade;
         _httpClient = httpClient;
+        _serializerOptions = serializerOptions;
     }
 
     public async Task<SelfSignupResult> SelfSignUpAsync(UserCredentials userCredentials)
     {
-        if (!IsPasswordValid(userCredentials.Password))
+        var passwordValidationResult = _passwordValidator.Validate(userCredentials.Password);
+        if (!passwordValidationResult.IsValid)
         {
-            throw new ArgumentException();
+            throw new PasswordValidationException { PasswordValidationResult = passwordValidationResult };
         }
         
         EligibilityMetadataEntity? eligibilityMetadataForEmployerName = null;
@@ -159,10 +168,5 @@ public class AccessManagementService : IAccessManagementService
         return AutoFixture.Build<User>()
             .With(user => user.Email, email)
             .Create();
-    }
-
-    private bool IsPasswordValid(string password)
-    {
-        return new PasswordValidator().Validate(password);
     }
 }

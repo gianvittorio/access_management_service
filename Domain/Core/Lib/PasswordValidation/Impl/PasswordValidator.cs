@@ -2,45 +2,48 @@ namespace AccessManagementService.Domain.Core.Lib.PasswordValidation.Impl;
 
 public class PasswordValidator : IPasswordValidator
 {
-    public bool Validate(string password)
+    public IPasswordValidator.PasswordValidationResult Validate(string password)
     {
+        var passwordValidationResult = new IPasswordValidator.PasswordValidationResult();
         if (string.IsNullOrWhiteSpace(password))
         {
-            return false;
-        }
-        
-        if (password.Length < 8)
-        {
-            return false;
+            return passwordValidationResult;
         }
 
-        bool hasLetter = false;
-        bool hasDigit = false;
-        bool hasSymbol = false;
-        for (int i = 0; i < password.Length; i++)
+        if (password.Length < 8)
         {
-            var character = password[i];
+            return passwordValidationResult;
+        }
+        
+        passwordValidationResult.HasMinNumberOfCharacters = true;
+
+        foreach (var character in password)
+        {
             if (char.IsLetter(character))
             {
-                hasLetter = true;
+                passwordValidationResult.HasLetter = true;
             }
             
             if (char.IsDigit(character))
             {
-                hasDigit = true;
-            }
-
-            if (char.IsSymbol(character))
-            {
-                hasSymbol = true;
+                passwordValidationResult.HasDigit = true;
             }
             
-            if (hasLetter && hasDigit && hasSymbol)
+            if (char.IsSymbol(character))
             {
-                return true;
+                passwordValidationResult.HasSymbol = true;
+            }
+            
+            passwordValidationResult.IsValid = passwordValidationResult is
+            {
+                HasMinNumberOfCharacters: true, HasLetter: true, HasDigit: true, HasSymbol: true
+            };
+            if (passwordValidationResult.IsValid)
+            {
+                break;
             }
         }
 
-        return false;
+        return passwordValidationResult;
     }
 }
