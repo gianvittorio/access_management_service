@@ -35,6 +35,11 @@ public class AccessManagementService : IAccessManagementService
 
     public async Task<SelfSignupResult> SelfSignUpAsync(UserCredentials userCredentials)
     {
+        if (!IsPasswordValid(userCredentials.Password))
+        {
+            throw new ArgumentException();
+        }
+        
         EligibilityMetadataEntity? eligibilityMetadataForEmployerName = null;
         User? employeeUser = null;
         if (!string.IsNullOrWhiteSpace(userCredentials.EmployerName))
