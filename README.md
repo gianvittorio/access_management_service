@@ -45,10 +45,7 @@ API contracts are, respectively:
   },
   "required": [
     "email",
-    "password",
-    "country",
-    "full_name",
-    "salary"
+    "password"
   ]
 }
 ```
