@@ -8,7 +8,7 @@ The following project is a simple access management API, that allows users signi
 
 ## Data Model
 We basically have three entities:
-1. User - It stores user personal information;
+1. <strong>User</strong> - It stores user personal information;
 2. Employee - Which is also a user, adding job/company related information to it;
 3. EligibilityMetadata - It stores user eligibility information, such as a file that contains employees information;
 
