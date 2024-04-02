@@ -137,20 +137,19 @@ Therefore <strong>Access Management Service</strong> acts as a mere <strong>API 
 2. Delegate csv file download and processing to a document search engine, or perhaps parallelize it with Hadoop or Spark, in order to avoid memory dumps and speed up the processing
 
 ## Tech Stack
-The project is structured as a 4-tiered stack:
-1. <strong>Application</strong> - Handles routing and http requests/response;
-2. <strong>Middleware</strong> - Handles request/response filtering, error handling, and so on;
-3. <strong>Service</strong> - Handles core business logic, interfacing with persistence and outbound services and API's
-4. <strong>Persistence</strong> - Handles data storage
-
-
 The following tech stack was used:
 1. <strong>ASP.Net C# 8.x</strong> - Web Application
 2. <strong>Wiremock</strong> - Mock server for outbound API calls
 3. <strong>Postgres</strong> - Relational Database
 4. <strong>Redis</strong> - In-Memory Database / Distributed Cache
 5. <strong>Docker / Docker-Compose</strong> - Container Runtime Sandbox
-<img width="233" alt="Captura de Tela 2024-04-02 às 14 07 13" src="https://github.com/gianvittorio/access_management_service/assets/8211552/f2adb78f-0f12-4edf-af0a-9ca1464c4c26">
+
+The project is structured as a 4-tiered stack:
+1. <strong>Application</strong> - Handles routing and http requests/response;
+2. <strong>Middleware</strong> - Handles request/response filtering, error handling, and so on;
+3. <strong>Service</strong> - Handles core business logic, interfacing with persistence and outbound services and API's
+4. <strong>Persistence</strong> - Handles data storage
+<img width="213" alt="Captura de Tela 2024-04-02 às 14 22 37" src="https://github.com/gianvittorio/access_management_service/assets/8211552/45112d4b-cea8-4b7a-a505-ba00df208950">
 
 ### Important Remarks
 1. Microservices architecture was used;
