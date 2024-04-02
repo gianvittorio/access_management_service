@@ -38,6 +38,9 @@ API contracts as follows:
     "full_name": {
       "type": "string"
     },
+    "employer_name": {
+      "type": "string"
+    },
     "salary": {
       "type": "string"
     }
@@ -172,9 +175,12 @@ curl --location 'http://localhost:8080/api/access_management/v1/pub/self_signup'
 --header 'Content-Type: application/json' \
 --data-raw '{
     "email": "john.doe@nowhere.net",
-    "password": "ssssssssssssss1+",
-    "country": "boo",
-    "full_name": "kkkikk"
+    "password": "1L0v3Ch33t0s!",
+    "country": "USA",
+    "full_name": "John Doe",
+    "birth_date": "1990-02-28",
+    "employer_name": "some_company",
+    "salary": "10000"
 }'
 ```
 and Eligibility API with:
