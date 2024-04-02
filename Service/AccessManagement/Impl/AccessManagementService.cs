@@ -128,7 +128,7 @@ public class AccessManagementService : IAccessManagementService
             .ExceptBy(fileProcessingResult.Users.Select(user => user.Email), user => user.Email);
         foreach (var userToBeRemoved in usersToBeRemoved)
         {
-            _ = await _accessManagementRepository.RemoveUserAsync(userToBeRemoved.Email);
+            await _userServiceFacade.RemoveUserAsync(userToBeRemoved.Email);
         }
         
         foreach (var currentUser in fileProcessingResult.Users)

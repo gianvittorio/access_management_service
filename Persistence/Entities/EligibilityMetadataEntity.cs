@@ -11,6 +11,4 @@ public class EligibilityMetadataEntity
     public int EmployerId { get; set; }
     public string FileUrl { get; set; } = null!;
     public string EmployerName { get; set; } = null!;
-
-    public ICollection<UserEntity> Users { get; set; } = new List<UserEntity>();
 }

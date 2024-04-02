@@ -35,71 +35,9 @@ public class AccessManagementRepository : IAccessManagementRepository
         }
     }
 
-    public async Task<UserEntity?> FindUserByEmailAsync(string email)
+    public Task<bool> RemoveUserAsync(string email)
     {
-        return await CallInScope(async dbContext => await dbContext.Users.FirstOrDefaultAsync(user => user.Email == email));
-    }
-
-    public async Task<UserEntity> SaveUserAsync(UserEntity userEntity)
-    {
-        return await CallInScope(async dbContext =>
-        {
-            var persistedEntity = await dbContext.Users.FirstOrDefaultAsync(entity => entity.Email == userEntity.Email);
-            if (persistedEntity is not null)
-            {
-                persistedEntity.FullName = userEntity.FullName;
-                persistedEntity.Country = userEntity.Country;
-                persistedEntity.BirthDate = userEntity.BirthDate;
-                persistedEntity.Salary = userEntity.Salary;
-                persistedEntity.EmployerId = userEntity.EmployerId;
-            }
-            else
-            {
-                persistedEntity = (await dbContext.Users.AddAsync(userEntity)).Entity;
-            }
-
-            return persistedEntity;
-        });
-    }
-
-    public async Task<UserEntity?> UpdateUserCountryAndSalaryIfExistsAsync(string email, string country, decimal salary)
-    {
-        return await CallInScope(async dbContext =>
-        {
-            var persistedEntity = await dbContext.Users.FirstOrDefaultAsync(entity => entity.Email == email);
-            if (persistedEntity is null)
-            {
-                return persistedEntity;
-            }
-            
-            persistedEntity.Country = country;
-            persistedEntity.Salary = salary;
-
-            return persistedEntity;
-        });
-    }
-
-    public async Task<bool> RemoveUserAsync(string email)
-    {
-        return await CallInScope(async dbContext =>
-        {
-            var userEntity = await dbContext.Users.FirstOrDefaultAsync(entity => entity.Email == email);
-            if (userEntity is null)
-            {
-                return false;
-            }
-            
-            dbContext.Users.Remove(userEntity);
-            return true;
-        });
-    }
-
-    public async Task<List<UserEntity>> FindUsersByEmployerNameAsync(string employerName)
-    {
-        return await CallInScope(async dbContext => await dbContext.EligibilityMetadata
-            .Where(metadataEntity => metadataEntity.EmployerName == employerName)
-            .SelectMany(metadataEntity => metadataEntity.Users)
-            .ToListAsync());
+        throw new NotImplementedException();
     }
 
     public async Task<EligibilityMetadataEntity?> FindEligibilityMetadataEntityByEmployerNameAsync(string employerName)
@@ -116,7 +54,6 @@ public class AccessManagementRepository : IAccessManagementRepository
             if (persistedEntity is not null)
             {
                 persistedEntity.FileUrl = eligibilityMetadataEntity.FileUrl;
-                persistedEntity.Users = eligibilityMetadataEntity.Users;
             }
             else
             {
