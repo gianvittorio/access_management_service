@@ -123,8 +123,8 @@ API contracts as follows:
 
 ## Architecture
 
-![Monolithic Architecture-2](https://github.com/gianvittorio/access_management_service/assets/8211552/ed354ed6-046b-4595-b38e-6057b46d16c4)
+<img width="451" alt="Captura de Tela 2024-04-02 às 10 31 44" src="https://github.com/gianvittorio/access_management_service/assets/8211552/6742dcb1-ecec-40fc-887e-9a661ebe0acb">
 
-![Microservices Architecture](https://github.com/gianvittorio/access_management_service/assets/8211552/770a5ba3-9315-4dce-b0d9-f5152ff1deb4)
+<img width="740" alt="Captura de Tela 2024-04-02 às 10 31 28" src="https://github.com/gianvittorio/access_management_service/assets/8211552/1b7076f6-1f4a-4955-97fb-eb825173ae5c">
 
 
