@@ -147,7 +147,8 @@ The following tech stack was used:
 2. API calls to both User and Employer Service are mocked by Wiremock;
 3. User data is cached, whereas Eligibility metadata is not, being stored as 'EligibilityMetadata' table in Postgres instead. That just so we do not have to hard-code eligibility file's url in Wiremock mapping files;
 4. No TTL was set for the cache at the moment, for simplicity;
-5. Despite eligibility file already being buffered as a memory stream, default buffer size for HttpClient was not overridden to 255Mb, but should be fairly easy to
+5. Despite eligibility file already being buffered as a memory stream, default buffer size for HttpClient was not overridden to 255Mb, but should be fairly easy to;
+6. Unit testing for password validation and access management's api calls and caching were skipped due to time constraints, so was integration testing for the whole API
 
 ## Bootstrap
 The whole application is containerized and can easily spinned by running:
