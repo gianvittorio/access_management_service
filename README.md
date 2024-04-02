@@ -1,7 +1,12 @@
 # Access Management Service
 
 ## Overview
-The following project is a simple access management API, that allows users signing in, either as normal or b2b user.
+The following project is a simple access management API, that allows users signing in, either as normal or b2b user. The following tech stack was used:
+1. <strong>ASP.Net C# 8.x</strong> - Web Application
+2. <strong>Wiremock</strong> - Mock server for outbound API calls
+3. <strong>Postgres</strong> - Relational Database
+4. <strong>Redis</strong> - In-Memory Database / Distributed Cache
+5. <strong>Docker / Docker-Compose</strong> - Container Runtime Sandbox
 
 ## Assumptions
 - Signup API will create a new user if the email is not already registered.
@@ -115,5 +120,10 @@ API contracts as follows:
   ]
 }
 ```
+
+## Architecture
+
+![Monolithic Architecture](https://github.com/gianvittorio/access_management_service/assets/8211552/0ad4d81b-9e2d-4427-8e13-d01023521742)
+
 
 
