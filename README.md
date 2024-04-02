@@ -123,7 +123,8 @@ API contracts as follows:
 
 ## Architecture
 
-![Monolithic Architecture](https://github.com/gianvittorio/access_management_service/assets/8211552/0ad4d81b-9e2d-4427-8e13-d01023521742)
+![Monolithic Architecture-2](https://github.com/gianvittorio/access_management_service/assets/8211552/ed354ed6-046b-4595-b38e-6057b46d16c4)
 
+![Microservices Architecture](https://github.com/gianvittorio/access_management_service/assets/8211552/770a5ba3-9315-4dce-b0d9-f5152ff1deb4)
 
 
