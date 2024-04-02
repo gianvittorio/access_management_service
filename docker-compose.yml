@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Docker"
     ports:
       - "8080:8080"
       - "8081:8081"
@@ -24,7 +26,7 @@ services:
       - "8083:8080"
   
   postgres_db:
-    container_name: 'postgres_db'
+    container_name: 'postgres'
     image: postgres:13.4-alpine
     restart: always
     environment:

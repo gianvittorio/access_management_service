@@ -13,6 +13,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Configuration
+var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+builder.Configuration.AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile($"appsettings.{envName}.json", optional: true)
+    .AddEnvironmentVariables();
 
 // Add JsonSerializerOptions
 builder.Services
