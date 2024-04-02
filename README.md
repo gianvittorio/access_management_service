@@ -159,6 +159,37 @@ and be gracefully shutdown by:
 docker-compose down
 ```
 
+## Testing
+There is an eligibiliy file available to download in my personal GDrive:
+```
+https://docs.google.com/spreadsheets/d/18uwZlO6nq16_RDKSmiIvmGvoUsHCgmBTtNXU5m933-Y/export?exportFormat=csv
+```
+
+Signup API usage can be tested with:
+```
+curl --location 'http://localhost:8080/api/access_management/v1/pub/self_signup' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "email": "john.doe@nowhere.net",
+    "password": "ssssssssssssss1+",
+    "country": "boo",
+    "full_name": "kkkikk"
+}'
+```
+and Eligibility API with:
+```
+curl --location 'http://localhost:8080/api/access_management/v1/pub/employer_signup' \
+--header 'Content-Type: application/json' \
+--data '{
+    "file": "https://docs.google.com/spreadsheets/d/18uwZlO6nq16_RDKSmiIvmGvoUsHCgmBTtNXU5m933-Y/export?exportFormat=csv",
+    "employer_name": "some_company"
+}'
+```
+
+
+
+
+
 
 
 
