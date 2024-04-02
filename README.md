@@ -1,13 +1,7 @@
 # Access Management Service
 
 ## Overview
-The following project is a simple access management API, that allows users signing in, either as normal or b2b user. The following tech stack was used:
-1. <strong>ASP.Net C# 8.x</strong> - Web Application
-2. <strong>Wiremock</strong> - Mock server for outbound API calls
-3. <strong>Postgres</strong> - Relational Database
-4. <strong>Redis</strong> - In-Memory Database / Distributed Cache
-5. <strong>Docker / Docker-Compose</strong> - Container Runtime Sandbox
-
+The following project is a simple access management API, that allows users signing in, either as normal or b2b user.
 ## Assumptions
 - Signup API will create a new user if the email is not already registered.
 
@@ -129,9 +123,43 @@ A single monolith comprised with a Postgres database is a good start, since we h
 <img width="451" alt="Captura de Tela 2024-04-02 às 10 31 44" src="https://github.com/gianvittorio/access_management_service/assets/8211552/6742dcb1-ecec-40fc-887e-9a661ebe0acb">
 
 ### Microservices Architecture
-In order to achieve higher availability and throughput through horizontal scaling we break the data model into two different services:
+In order to achieve higher availability and throughput, through horizontal scaling, we break the data model (responsibility segregation) into two different services, , comprised with their own storage:
 1. <strong>User Service</strong> - in charge for User model
 2. <strong>Employer Service</strong> - in charge for employer and eligibility model
+Therefore <strong>Access Management Service</strong> acts as a mere <strong>API Gateway</strong>, in charge for retrieving information from <strong>User Service</strong> and <strong>Employer Service</strong>. In order to avoid unnecessary roundtrips and possibly overwhelming such outbound services, we setup a cache layer in front of both of them. Access Management Service will try reading from cache and, in case of a miss, it will call User/Employer service and persist it in the cache (write aside). Since most data does not seem to change very often, it can safely be cached. A TTL with daily granularity sounds suitable.
 <img width="740" alt="Captura de Tela 2024-04-02 às 10 31 28" src="https://github.com/gianvittorio/access_management_service/assets/8211552/1b7076f6-1f4a-4955-97fb-eb825173ae5c">
+
+### Follow Up
+1. Federating and sharding both User and Employer schemas;
+2. Delegate csv file download and processing to a document search engine, or perhaps parallelize it with Hadoop or Spark, in order to avoid memory dumps and speed up the processing
+
+## Tech Stack
+
+The following tech stack was used:
+1. <strong>ASP.Net C# 8.x</strong> - Web Application
+2. <strong>Wiremock</strong> - Mock server for outbound API calls
+3. <strong>Postgres</strong> - Relational Database
+4. <strong>Redis</strong> - In-Memory Database / Distributed Cache
+5. <strong>Docker / Docker-Compose</strong> - Container Runtime Sandbox
+
+### Important Remarks
+1. Microservices architecture was used;
+2. API calls to both User and Employer Service are mocked by Wiremock;
+3. User data is cached, whereas Eligibility metadata is not, being stored as 'EligibilityMetadata' table in Postgres instead. That just so we do not have to hard-code eligibility file's url in Wiremock mapping files;
+4. No TTL was set for the cache at the moment, for simplicity;
+5. Despite eligibility file already being buffered as a memory stream, default buffer size for HttpClient was not overridden to 255Mb, but should be fairly easy to
+
+## Bootstrap
+The whole application is containerized and can easily spinned by running:
+```
+docker-compose up -d --build
+```
+and be gracefully shutdown by:
+```
+docker-compose down
+```
+
+
+
 
 
