@@ -19,7 +19,7 @@ We essentially have only two API's:
 1. <strong>Signup</strong> - "/api/access_management/v1/pub/self_signup"
 2. <strong>Eligibility</strong> - "/api/access_management/v1/pub/employer_signup"
 
-API contracts are, respectively:
+API contracts as follows:
 
 ```json
 {
