@@ -123,8 +123,15 @@ API contracts as follows:
 
 ## Architecture
 
+### Monolithic Architecture 
+We begin with the simplest approach to fulfill our functional requirements and we iterate from it to address the non-functional ones.
+A single monolith comprised with a Postgres database is a good start, since we have a simple somewhat relational schema:
 <img width="451" alt="Captura de Tela 2024-04-02 às 10 31 44" src="https://github.com/gianvittorio/access_management_service/assets/8211552/6742dcb1-ecec-40fc-887e-9a661ebe0acb">
 
+### Microservices Architecture
+In order to achieve higher availability and throughput through horizontal scaling we break the data model into two different services:
+1. <strong>User Service</strong> - in charge for User model
+2. <strong>Employer Service</strong> - in charge for employer and eligibility model
 <img width="740" alt="Captura de Tela 2024-04-02 às 10 31 28" src="https://github.com/gianvittorio/access_management_service/assets/8211552/1b7076f6-1f4a-4955-97fb-eb825173ae5c">
 
 
